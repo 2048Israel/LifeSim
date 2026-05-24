@@ -1,0 +1,100 @@
+/*
+ * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
+ * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
+ */
+package ham.lifesim;
+
+public class Game {
+    // Core Character Stats
+    private int ageYears;
+    private int ageWeeks;
+    private double health;     // 0.0 to 100.0
+    private double energy;     // 0.0 to 100.0
+    private double happiness;  // 0.0 to 100.0
+    private double bankBalance;
+
+    // Time Allocation Metrics (Must total 168 hours)
+    private int hoursSleep;
+    private int hoursWork;
+    private int hoursStudy;
+    private int hoursSocial;
+    private int hoursExercise;
+
+    // Economic Engine Baseline
+    private double hourlyWage;
+
+    /**
+     * Constructor: Initializes a brand new life simulation (starting young)
+     */
+    public Game() {
+        this.ageYears = 18; // Start at adulthood baseline
+        this.ageWeeks = 0;
+        this.health = 100.0;
+        this.energy = 100.0;
+        this.happiness = 80.0;
+        this.bankBalance = 1000.0; // Starting seed money
+
+        // Default balanced schedule baseline (Total = 168)
+        this.hoursSleep = 56;  // 8 hours a day
+        this.hoursWork = 40;   // Standard full-time job
+        this.hoursStudy = 0;
+        this.hoursSocial = 62; // Remaining leisure/social time
+        this.hoursExercise = 10;
+        
+        this.hourlyWage = 15.00; // Baseline entry-level job income
+    }
+
+    /**
+     * The heart of your automation engine. 
+     * This method runs exactly once per simulated week.
+     */
+    public void tickWeeklyLoop() {
+        // 1. Advance the clock
+        ageWeeks++;
+        if (ageWeeks >= 52) {
+            ageWeeks = 0;
+            ageYears++;
+        }
+
+        // 2. Financial Automation (Income vs basic survival expenses)
+        double grossIncome = hoursWork * hourlyWage;
+        double taxes = grossIncome * 0.15; // Simplified 15% flat tax flat rate
+        double basicLivingCost = 250.00;   // Weekly food and rent baseline
+        
+        bankBalance += (grossIncome - taxes - basicLivingCost);
+
+        // 3. Health & Energy Accumulation Logic
+        // Penalty if sleeping less than 7 hours a day (49 hours/week)
+        if (hoursSleep < 49) {
+            energy = Math.max(0, energy - (49 - hoursSleep) * 1.5);
+            health = Math.max(0, health - 1.0);
+        } else {
+            energy = Math.min(100, energy + 5.0);
+        }
+
+        // Exercise bonus
+        if (hoursExercise >= 5 && energy > 20) {
+            health = Math.min(100, health + 0.5);
+        }
+    }
+
+    // --- GETTERS AND SETTERS ---
+    // These allow your UI classes to read the values safely without breaking them
+    public int getAgeYears() { return ageYears; }
+    public int getAgeWeeks() { return ageWeeks; }
+    public double getHealth() { return health; }
+    public double getEnergy() { return energy; }
+    public double getHappiness() { return happiness; }
+    public double getBankBalance() { return bankBalance; }
+
+    // Setters for the time allocation so sliders can update the model
+    public void setSchedule(int sleep, int work, int study, int social, int exercise) {
+        if ((sleep + work + study + social + exercise) == 168) {
+            this.hoursSleep = sleep;
+            this.hoursWork = work;
+            this.hoursStudy = study;
+            this.hoursSocial = social;
+            this.hoursExercise = exercise;
+        }
+    }
+}
