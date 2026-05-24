@@ -7,10 +7,11 @@ package ham.lifesim;
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
 import javafx.application.Application;
+import javafx.collections.FXCollections;
 import javafx.scene.Scene;
-import javafx.scene.control.Label;
-import javafx.scene.control.Tab;
-import javafx.scene.control.TabPane;
+import javafx.scene.control.*;
+import javafx.scene.layout.GridPane;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
@@ -20,12 +21,21 @@ public class UserInterface extends Application {
 
     // Instantiate our game core logic brain
     private final Game gameEngine = new Game();
+    
 
-    // UI Labels that need to update dynamically every week
+    // Dashboard UI Components
     private Label ageLabel;
     private Label healthLabel;
     private Label energyLabel;
     private Label balanceLabel;
+    
+    // Career UI Components
+    private ListView<String> jobListView;
+    private Label jobTitleDetailLabel;
+    private Label jobWageDetailLabel;
+    private Label jobReqsDetailLabel;
+    private Button applyButton;
+    private Label currentJobStatusLabel;
 
     @Override
     public void start(Stage primaryStage) {
@@ -57,12 +67,84 @@ public class UserInterface extends Application {
         // Add labels to dashboard container
         dashboardContent.getChildren().addAll(ageLabel, healthLabel, energyLabel, balanceLabel);
         dashboardTab.setContent(dashboardContent);
+        
+        // Push initial numbers to screen immediately
+        updateDashboardUI();
 
-        // --- 2. BUILD THE OTHER PLAIN CONFIGURATION TABS ---
+        // --- 2. BUILD THE FUNCTIONAL CAREER TAB ---
+        Tab careerTab = new Tab("Career & Education");
+        HBox careerContent = new HBox(20); // Side-by-side layout (List on left, details on right)
+        careerContent.setStyle("-fx-padding: 20px;");
+
+        // Left Side: The List of available jobs
+        jobListView = new ListView<>();
+        HBox.setHgrow(jobListView, Priority.ALWAYS);
+        
+        // Populate the list view with titles from our JobManager
+        for (Job job : gameEngine.getJobManager().getAvailableJobs()) {
+            jobListView.getItems().add(job.getTitle());
+        }
+
+        // Right Side: Job Details Panel
+        VBox detailsPanel = new VBox(15);
+        detailsPanel.setStyle("-fx-padding: 10px; -fx-border-color: #cccccc; -fx-border-width: 1px; -fx-pref-width: 350px;");
+        
+        currentJobStatusLabel = new Label("Current Status: Unemployed");
+        currentJobStatusLabel.setStyle("-fx-font-weight: bold; -fx-text-fill: #aa0000;");
+        
+        jobTitleDetailLabel = new Label("Select a job from the market");
+        jobTitleDetailLabel.setStyle("-fx-font-size: 16px; -fx-font-weight: bold;");
+        jobWageDetailLabel = new Label("Wage: --");
+        jobReqsDetailLabel = new Label("Requirements: --");
+        
+        applyButton = new Button("Apply for Job");
+        applyButton.setDisable(true); // Disable until they select something
+
+        detailsPanel.getChildren().addAll(currentJobStatusLabel, new Separator(), jobTitleDetailLabel, jobWageDetailLabel, jobReqsDetailLabel, applyButton);
+        
+        careerContent.getChildren().addAll(jobListView, detailsPanel);
+        careerTab.setContent(careerContent);
+
+        // --- 3. EVENT LISTENERS (UI INTERACTIONS) ---
+        
+        // Listen for when a user clicks an item in the Job List
+        jobListView.getSelectionModel().selectedIndexProperty().addListener((observable, oldValue, newValue) -> {
+            int index = newValue.intValue();
+            if (index >= 0) {
+                Job selectedJob = gameEngine.getJobManager().getAvailableJobs().get(index);
+                
+                // Update the detail text panel
+                jobTitleDetailLabel.setText(selectedJob.getTitle());
+                jobWageDetailLabel.setText(String.format("Wage: $%.2f / hour", selectedJob.getHourlyWage()));
+                jobReqsDetailLabel.setText("Requires: Smarts " + selectedJob.getRequiredSmarts() + ", Degree: " + selectedJob.getRequiredDegree());
+                
+                applyButton.setDisable(false);
+            }
+        });
+
+        // Action when "Apply for Job" button is clicked
+        applyButton.setOnAction(event -> {
+            int index = jobListView.getSelectionModel().getSelectedIndex();
+            Job selectedJob = gameEngine.getJobManager().getAvailableJobs().get(index);
+            
+            // For now, passing hardcoded 100 smarts and "None" degree baseline to test hiring
+            boolean hired = gameEngine.getJobManager().tryApplyForJob(selectedJob, 100, "None");
+            
+            if (hired) {
+                currentJobStatusLabel.setText("Current Status: Employed as " + selectedJob.getTitle());
+                currentJobStatusLabel.setStyle("-fx-font-weight: bold; -fx-text-fill: #00aa00;");
+            } else {
+                // Flash red if requirements fail
+                Alert alert = new Alert(Alert.AlertType.WARNING, "You do not meet the qualifications for this job!");
+                alert.showAndWait();
+            }
+        });
+
+        // --- 4. ASSEMBLE REMAINING PLACEHOLDER TABS ---
         Tab timeTab = createEmptyTab("Time Allocation", "Manage your 168-hour weekly time budget here.");
         Tab financesTab = createEmptyTab("Finances", "Track income vs expenses and balance your cash flow here.");
         Tab wealthTab = createEmptyTab("Wealth & Market", "Manage your stock portfolios, bonds, and real estate here.");
-        Tab careerTab = createEmptyTab("Career & Education", "Apply for positions and manage educational qualifications here.");
+        
 
         tabPane.getTabs().addAll(dashboardTab, timeTab, financesTab, wealthTab, careerTab);
         mainLayout.getChildren().add(tabPane);

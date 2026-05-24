@@ -22,6 +22,9 @@ public class Game {
 
     // Economic Engine Baseline
     private double hourlyWage;
+    
+    // Managers
+    private final JobManager jobManager = new JobManager();
 
     /**
      * Constructor: Initializes a brand new life simulation (starting young)
@@ -56,6 +59,10 @@ public class Game {
             ageYears++;
         }
 
+            //1b. update life
+        jobManager.updateWeeklyJobMetrics(hoursWork);
+        updateHourlyWage();
+        
         // 2. Financial Automation (Income vs basic survival expenses)
         double grossIncome = hoursWork * hourlyWage;
         double taxes = grossIncome * 0.15; // Simplified 15% flat tax flat rate
@@ -76,6 +83,13 @@ public class Game {
         if (hoursExercise >= 5 && energy > 20) {
             health = Math.min(100, health + 0.5);
         }
+    }
+    
+    //Updaters
+    private void updateHourlyWage(){
+        // Instead of a fixed hourlyWage field inside Game:
+        hourlyWage = (jobManager.getCurrentJob() != null) ? jobManager.getCurrentJob().getHourlyWage() : 0.0;
+        
     }
 
     // --- GETTERS AND SETTERS ---
@@ -102,6 +116,13 @@ public class Game {
 
     public double getBankBalance() {
         return bankBalance;
+    }
+ 
+    /**
+     * Allows the UI and other components to safely access the job subsystem.
+     */
+    public JobManager getJobManager() {
+        return this.jobManager;
     }
 
     // Setters for the time allocation so sliders can update the model
