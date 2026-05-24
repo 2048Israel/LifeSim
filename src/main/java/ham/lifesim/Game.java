@@ -25,6 +25,7 @@ public class Game {
     
     // Managers
     private final JobManager jobManager = new JobManager();
+    private final TimeManager timeManager = new TimeManager();
 
     /**
      * Constructor: Initializes a brand new life simulation (starting young)
@@ -62,6 +63,8 @@ public class Game {
             //1b. update life
         jobManager.updateWeeklyJobMetrics(hoursWork);
         updateHourlyWage();
+        int workHours = timeManager.getHoursWork();
+        int sleepHours = timeManager.getHoursSleep();
         
         // 2. Financial Automation (Income vs basic survival expenses)
         double grossIncome = hoursWork * hourlyWage;
@@ -120,9 +123,13 @@ public class Game {
  
     /**
      * Allows the UI and other components to safely access the job subsystem.
+     * @return 
      */
     public JobManager getJobManager() {
         return this.jobManager;
+    }
+    public TimeManager getTimeManager() {
+        return this.timeManager;
     }
 
     // Setters for the time allocation so sliders can update the model

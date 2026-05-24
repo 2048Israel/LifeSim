@@ -17,11 +17,11 @@ public class JobDataInitializer {
         List<Job> masterList = new ArrayList<>();
 
         // Format: ID, Title, Hourly Wage, Req. Smarts, Req. Degree
-        masterList.add(new Job("WENDYS_COOK", "Fast Food Fry Cook", 15.00, 0, "None"));
-        masterList.add(new Job("RETAIL_CLERK", "Retail Sales Associate", 16.50, 20, "None"));
-        masterList.add(new Job("BOOKKEEPER", "Junior Bookkeeper", 22.00, 45, "None"));
-        masterList.add(new Job("DATA_ANALYST", "Data Analyst", 35.00, 60, "Computer Science"));
-        masterList.add(new Job("ACCOUNTANT", "Corporate Accountant", 45.00, 65, "Accounting"));
+        masterList.add(new Job("WENDYS_COOK", "Fast Food Fry Cook", 15.00,8,42, 0, "None"));
+        masterList.add(new Job("RETAIL_CLERK", "Retail Sales Associate", 16.50,8,42, 20, "None"));
+        masterList.add(new Job("BOOKKEEPER", "Junior Bookkeeper", 22.00,35, 40, 45, "None"));
+        masterList.add(new Job("DATA_ANALYST", "Data Analyst", 35.00,35,60, 60, "Computer Science"));
+        masterList.add(new Job("ACCOUNTANT", "Corporate Accountant", 45.00, 37, 40, 65, "Accounting"));
 
         return masterList;
     }
