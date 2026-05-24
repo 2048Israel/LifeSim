@@ -7,10 +7,8 @@ package ham.lifesim;
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
 import javafx.application.Application;
-import javafx.collections.FXCollections;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
-import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
@@ -36,6 +34,15 @@ public class UserInterface extends Application {
     private Label jobReqsDetailLabel;
     private Button applyButton;
     private Label currentJobStatusLabel;
+    
+    // --- FINANCES UI (INCOME STATEMENT COMPONENTS) ---
+    private Label statementTitleLabel;
+    private Label revSalaryLabel;
+    private Label grossRevenueLabel;
+    private Label expTaxesLabel;
+    private Label expLivingLabel;
+    private Label totalExpensesLabel;
+    private Label netIncomeLabel;
 
     @Override
     public void start(Stage primaryStage) {
@@ -68,8 +75,7 @@ public class UserInterface extends Application {
         dashboardContent.getChildren().addAll(ageLabel, healthLabel, energyLabel, balanceLabel);
         dashboardTab.setContent(dashboardContent);
         
-        // Push initial numbers to screen immediately
-        updateDashboardUI();
+        
 
         // --- 2. BUILD THE FUNCTIONAL CAREER TAB ---
         Tab careerTab = new Tab("Career & Education");
@@ -121,6 +127,8 @@ public class UserInterface extends Application {
                 applyButton.setDisable(false);
             }
         });
+        
+        
 
         // Action when "Apply for Job" button is clicked
         applyButton.setOnAction(event -> {
@@ -139,10 +147,47 @@ public class UserInterface extends Application {
                 alert.showAndWait();
             }
         });
+        
+        // --- 2. FINANCES TAB (INCOME STATEMENT STYLE) ---
+        Tab financesTab = new Tab("Finances");
+        VBox financesContent = new VBox(10);
+        financesContent.setStyle("-fx-padding: 40px; -fx-font-family: 'Courier New'; -fx-font-size: 15px;");
+
+        // Statement Header
+        statementTitleLabel = new Label("PERSONAL INCOME STATEMENT\nFor the Month of January");
+        statementTitleLabel.setStyle("-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-alignment: center;");
+        
+        // Revenue Section
+        Label revHeader = new Label("REVENUE / INFLOWS");
+        revHeader.setStyle("-fx-font-weight: bold; -fx-text-fill: #2e7d32;");
+        revSalaryLabel     = new Label("  Gross Wages/Salary:        $0.00");
+        grossRevenueLabel  = new Label("TOTAL REVENUE:               $0.00");
+        grossRevenueLabel.setStyle("-fx-font-weight: bold;");
+
+        // Expenses Section
+        Label expHeader = new Label("EXPENSES / OUTFLOWS");
+        expHeader.setStyle("-fx-font-weight: bold; -fx-text-fill: #c62828;");
+        expTaxesLabel      = new Label("  Income Tax Deductions:     $0.00");
+        expLivingLabel     = new Label("  Basic Survival Expenses:   $0.00");
+        totalExpensesLabel = new Label("TOTAL EXPENSES:              $0.00");
+        totalExpensesLabel.setStyle("-fx-font-weight: bold;");
+
+        // Bottom Line Net Income
+        Separator netSeparator = new Separator();
+        netIncomeLabel     = new Label("NET SURPLUS / (DEFICIT):     $0.00");
+        netIncomeLabel.setStyle("-fx-font-size: 16px; -fx-font-weight: bold;");
+
+        // Assemble the Statement layout
+        financesContent.getChildren().addAll(
+            statementTitleLabel, new Separator(),
+            revHeader, revSalaryLabel, grossRevenueLabel, new Separator(),
+            expHeader, expTaxesLabel, expLivingLabel, totalExpensesLabel,
+            netSeparator, netIncomeLabel
+        );
+        financesTab.setContent(financesContent);
 
         // --- 4. ASSEMBLE REMAINING PLACEHOLDER TABS ---
         Tab timeTab = createEmptyTab("Time Allocation", "Manage your 168-hour weekly time budget here.");
-        Tab financesTab = createEmptyTab("Finances", "Track income vs expenses and balance your cash flow here.");
         Tab wealthTab = createEmptyTab("Wealth & Market", "Manage your stock portfolios, bonds, and real estate here.");
         
 
@@ -154,6 +199,8 @@ public class UserInterface extends Application {
         primaryStage.show();
 
         // --- 3. START THE GAME LOOP TIMELINE ---
+        updateDashboardUI();
+        updateFinanceUI();
         setupGameLoop();
     }
 
@@ -169,6 +216,7 @@ public class UserInterface extends Application {
             
             // 2. Refresh the UI labels with the brand new calculated data
             updateDashboardUI();
+            updateFinanceUI();
         });
 
         // Assemble the timeline loop
@@ -185,6 +233,48 @@ public class UserInterface extends Application {
         healthLabel.setText("Health: " + String.format("%.1f", gameEngine.getHealth()) + "%");
         energyLabel.setText("Energy: " + String.format("%.1f", gameEngine.getEnergy()) + "%");
         balanceLabel.setText("Bank Balance: $" + String.format("%.2f", gameEngine.getBankBalance()));
+    }
+    
+    private void updateFinanceUI() {
+        statementTitleLabel.setText("PERSONAL INCOME STATEMENT\nFor the Month of " + gameEngine.getCurrentMonthName());
+
+        // 1. Determine how many weeks are in the current 4-4-5 month dynamically
+        int currentWeek = gameEngine.getAgeWeeks() + 1;
+        int weeksInThisMonth = 4;
+        if (currentWeek == 9 || currentWeek == 13 || currentWeek == 22 || currentWeek == 26 || 
+            currentWeek == 35 || currentWeek == 39 || currentWeek == 48 || currentWeek == 52) {
+            weeksInThisMonth = 5;
+        }
+
+        // 2. Extract weekly baseline data from our game models
+        double hourlyWage = (gameEngine.getJobManager().getCurrentJob() != null) ? gameEngine.getJobManager().getCurrentJob().getHourlyWage() : 0.0;
+        double weeklyGrossIncome = 40 * hourlyWage; // Hardcoded 40 hr work week check for now
+        double weeklyTaxes = weeklyGrossIncome * 0.15;
+        double weeklyLivingExpenses = 250.00;
+
+        // 3. Multiply by calendar period modifier (4 or 5 weeks)
+        double monthlyGross = weeklyGrossIncome * weeksInThisMonth;
+        double monthlyTaxes = weeklyTaxes * weeksInThisMonth;
+        double monthlyLiving = weeklyLivingExpenses * weeksInThisMonth;
+        double monthlyExpenses = monthlyTaxes + monthlyLiving;
+        double monthlyNetIncome = monthlyGross - monthlyExpenses;
+
+        // 4. Update Statement Labels
+        revSalaryLabel.setText(String.format("  Gross Wages/Salary:        $%,.2f", monthlyGross));
+        grossRevenueLabel.setText(String.format("TOTAL REVENUE:               $%,.2f", monthlyGross));
+
+        expTaxesLabel.setText(String.format("  Income Tax Deductions:     $%,.2f", monthlyTaxes));
+        expLivingLabel.setText(String.format("  Basic Survival Expenses:   $%,.2f", monthlyLiving));
+        totalExpensesLabel.setText(String.format("TOTAL EXPENSES:              $%,.2f", monthlyExpenses));
+
+        netIncomeLabel.setText(String.format("NET SURPLUS / (DEFICIT):     $%,.2f", monthlyNetIncome));
+        
+        // Highlight deficits vs profits
+        if (monthlyNetIncome >= 0) {
+            netIncomeLabel.setStyle("-fx-font-size: 16px; -fx-font-weight: bold; -fx-text-fill: #2e7d32;");
+        } else {
+            netIncomeLabel.setStyle("-fx-font-size: 16px; -fx-font-weight: bold; -fx-text-fill: #c62828;");
+        }
     }
 
     private Tab createEmptyTab(String title, String placeholderText) {
