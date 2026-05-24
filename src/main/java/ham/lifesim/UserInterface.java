@@ -367,44 +367,43 @@ public class UserInterface extends Application {
      * Computes totals and validates limits dynamically.
      */
     private void recalculateScheduleAllocation() {
-        // 1. Read all the "active choice" sliders first
+        // 1. Get current values
         int work = (int) workSlider.getValue();
         int study = (int) studySlider.getValue();
         int social = (int) socialSlider.getValue();
         int exercise = (int) exerciseSlider.getValue();
 
-        // 2. Calculate exactly how many hours are left out of 168 for sleep
-        int hoursLeftForSleep = 168 - (work + study + social + exercise);
+        // 2. Calculate the core pool *excluding* sleep
+        int totalActiveChoices = work + study + social + exercise;
+        int remainingPool = 168 - totalActiveChoices;
 
-        // 3. Dynamic Buffer Safeguard: 
-        // If they cranked other sliders so high that hoursLeftForSleep drops below 0,
-        // we need to push back on the slider they just dragged.
-        if (hoursLeftForSleep < 0) {
-            // This means they went over budget, so we force Sleep's max track to 0
-            sleepSlider.setMax(0);
-            sleepSlider.setValue(0);
-        } else {
-            // The magic line: Sleep's ceiling dynamically shrinks or grows!
-            sleepSlider.setMax(hoursLeftForSleep);
+        // 3. Update the MAX bounds for all active sliders dynamically.
+        // The max a slider can go is its CURRENT value plus whatever is left over in the week!
+        // Fetch job constraints for work, or default to the remaining pool if unemployed
+        Job currentJob = gameEngine.getJobManager().getCurrentJob();
+        int jobMax = (currentJob != null) ? currentJob.getMaxHours() : 0;
 
-            // Automatically push sleep to fill up the exact remainder of the 168-hour week
-            sleepSlider.setValue(hoursLeftForSleep);
-        }
+        workSlider.setMax(Math.min(jobMax, work + remainingPool));
+        studySlider.setMax(study + remainingPool);
+        socialSlider.setMax(social + remainingPool);
+        exerciseSlider.setMax(exercise + remainingPool);
 
-        // 4. Now read the final locked integer value of sleep for the backend
+        // 4. Force Sleep to act as the exact remainder sponge
+        sleepSlider.setMax(168); // Allow sleep to scale back up if others decrease
+        sleepSlider.setValue(remainingPool);
         int sleep = (int) sleepSlider.getValue();
 
-        // --- (The rest of your label updates and gameEngine.setSchedule call stay exactly the same!) ---
+        // --- (The rest of your label updates and gameEngine.setSchedule call stay the same) ---
         sleepValLabel.setText("Sleep: " + sleep + " hrs/wk");
         workValLabel.setText("Work: " + work + " hrs/wk");
         studyValLabel.setText("Study: " + study + " hrs/wk");
         socialValLabel.setText("Social: " + social + " hrs/wk");
         exerciseValLabel.setText("Exercise: " + exercise + " hrs/wk");
 
-        hoursRemainingLabel.setText("Hours Allocated: 168 / 168 (Sleep dynamically adjusted)");
+        hoursRemainingLabel.setText("Hours Allocated: 168 / 168 (All sliders dynamically bounded)");
         gameEngine.setSchedule(sleep, work, study, social, exercise);
     }
-    
+
     private void refreshWorkSliderConstraints() {
     Job currentJob = gameEngine.getJobManager().getCurrentJob();
 
