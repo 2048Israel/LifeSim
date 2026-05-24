@@ -3,6 +3,7 @@
  */
 
 package ham.lifesim;
+import javafx.application.Application;
 
 /**
  *
@@ -10,7 +11,7 @@ package ham.lifesim;
  */
 public class LifeSim {
 
-    public static void main(String[] args) {
-        System.out.println("Hello World!");
+        public static void main(String[] args) {
+        Application.launch(UserInterface.class, args);
     }
 }
