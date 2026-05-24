@@ -80,12 +80,29 @@ public class Game {
 
     // --- GETTERS AND SETTERS ---
     // These allow your UI classes to read the values safely without breaking them
-    public int getAgeYears() { return ageYears; }
-    public int getAgeWeeks() { return ageWeeks; }
-    public double getHealth() { return health; }
-    public double getEnergy() { return energy; }
-    public double getHappiness() { return happiness; }
-    public double getBankBalance() { return bankBalance; }
+    public int getAgeYears() {
+        return ageYears;
+    }
+
+    public int getAgeWeeks() {
+        return ageWeeks;
+    }
+
+    public double getHealth() {
+        return health;
+    }
+
+    public double getEnergy() {
+        return energy;
+    }
+
+    public double getHappiness() {
+        return happiness;
+    }
+
+    public double getBankBalance() {
+        return bankBalance;
+    }
 
     // Setters for the time allocation so sliders can update the model
     public void setSchedule(int sleep, int work, int study, int social, int exercise) {
@@ -96,5 +113,55 @@ public class Game {
             this.hoursSocial = social;
             this.hoursExercise = exercise;
         }
+    }
+    // Array to map our 12 month names cleanly
+    private static final String[] MONTHS = {
+        "January", "February", "March", "April", "May", "June",
+        "July", "August", "September", "October", "November", "December"
+    };
+
+    /**
+     * Translates the current game week (0-51) into the corresponding month name
+     * using the 4-4-5 fiscal calendar framework.
+     * @return 
+     */
+    public String getCurrentMonthName() {
+        // Convert 0-indexed tracking to a 1-52 calendar range for clean comparison math
+        int weekOfYear = this.ageWeeks + 1;
+
+        if (weekOfYear <= 4) {
+            return MONTHS[0];  // Jan (4 weeks)
+        }
+        else if (weekOfYear <= 8) {
+            return MONTHS[1];  // Feb (4 weeks)
+        }
+        else if (weekOfYear <= 13) {
+            return MONTHS[2];  // Mar (5 weeks)
+        }
+        else if (weekOfYear <= 17) {
+            return MONTHS[3];  // Apr (4 weeks)
+        }
+        else if (weekOfYear <= 21) {
+            return MONTHS[4];  // May (4 weeks)
+        }
+        else if (weekOfYear <= 26) {
+            return MONTHS[5];  // June (5 weeks)
+        }
+        else if (weekOfYear <= 30) {
+            return MONTHS[6];  // July (4 weeks)
+        }
+        else if (weekOfYear <= 34) {
+            return MONTHS[7];  // Aug (4 weeks)
+        }
+        else if (weekOfYear <= 39) {
+            return MONTHS[8];  // Sept (5 weeks)
+        }
+        else if (weekOfYear <= 43) {
+            return MONTHS[9];  // Oct (4 weeks)
+        }
+        else if (weekOfYear <= 47) {
+            return MONTHS[10]; // Nov (4 weeks)
+        }
+        return MONTHS[11]; // Dec (Remaining weeks up to 52)
     }
 }

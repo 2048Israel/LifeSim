@@ -42,7 +42,7 @@ public class UserInterface extends Application {
         dashboardContent.setStyle("-fx-padding: 30px; -fx-alignment: center-left;");
 
         // Initialize text readouts
-        ageLabel = new Label("Age: " + gameEngine.getAgeYears() + " years, Week " + gameEngine.getAgeWeeks());
+        ageLabel = new Label("Age: " + gameEngine.getAgeYears() + " (" + gameEngine.getCurrentMonthName() + ", Week " + (gameEngine.getAgeWeeks() + 1) + ")");
         healthLabel = new Label("Health: " + gameEngine.getHealth() + "%");
         energyLabel = new Label("Energy: " + gameEngine.getEnergy() + "%");
         balanceLabel = new Label("Bank Balance: $" + String.format("%.2f", gameEngine.getBankBalance()));
@@ -99,7 +99,7 @@ public class UserInterface extends Application {
      * Pulls latest values from the engine and pushes them to the screen elements.
      */
     private void updateDashboardUI() {
-        ageLabel.setText("Age: " + gameEngine.getAgeYears() + " years, Week " + gameEngine.getAgeWeeks());
+        ageLabel.setText("Age: " + gameEngine.getAgeYears() + " (" + gameEngine.getCurrentMonthName() + ", Week " + (gameEngine.getAgeWeeks() + 1) + ")");
         healthLabel.setText("Health: " + String.format("%.1f", gameEngine.getHealth()) + "%");
         energyLabel.setText("Energy: " + String.format("%.1f", gameEngine.getEnergy()) + "%");
         balanceLabel.setText("Bank Balance: $" + String.format("%.2f", gameEngine.getBankBalance()));
