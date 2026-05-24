@@ -1,0 +1,10 @@
+target/
+.mtj.tmp/
+*.class
+
+# NetBeans specific
+/nbproject/private/
+/build/
+/nbbuild/
+/dist/
+/nbdist/
